@@ -1,0 +1,216 @@
+﻿@model IEnumerable<ControleDeContas.Models.Produto>
+
+@{
+    ViewData["Title"] = "Produtos";
+}
+
+<h2><span id="mesAtual"></span></h2>
+
+<button id="exall" type="button" class="btn btn-danger" onclick="confirmarExclusao()">Excluir todas contas</button>
+
+<p>
+    <a class="btn btn-success" type="button" asp-action="Create">Nova conta</a>
+</p>
+
+<div class="input-group input-group-sm mb-3 w-25">
+    <strong><label id="lbpesquisar">Pesquisar: </label></strong>
+    <input class="form-control w-25" type="text" id="campoPesquisa">
+</div>
+
+<table id="dadosTable" class="table table-dark table-hover">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Nome)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Valor)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nome)
+            </td>
+            <td data-valor="@item.Valor">
+                @Html.DisplayFor(modelItem => item.Valor)
+            </td>
+            <td>
+                    @*<a class="btn btn-primary" asp-action="Edit" asp-route-id="@item.Id">Editar</a> |*@
+                
+                    <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id">Excluir</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<h5><div class="mensagem-nenhum-dado-encontrado" id="nenhumDadoEncontrado" style="display: none;">Nenhum dado encontrado!</div></h5>
+
+
+@*<div class="form-group">*@
+    <strong><label id="lbsoma">Soma: </label></strong>
+    <input id="resultadoSoma" class="form-control w-25" value="Disabled readonly input" aria-label="Disabled input example" disabled readonly/>
+@*</div>*@
+
+    <br />
+
+    <strong><label>Restante: </label><strong>
+    <input id="resultadoSubtracao" class="form-control w-25" value="Disabled readonly input" aria-label="Disabled input example" disabled readonly/>
+    
+
+    <script>
+        //funcao para adicionar , nos milhares
+        function formatarNumero(numero) {
+            return numero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        //funcao para adicionar R$ nos input
+        function adicionarSimboloReais(valor) {
+            return "R$ " + valor;
+        }
+
+        function calcularSoma() {
+            let elementos = document.querySelectorAll('td[data-valor]'); // seleciona todos os elementos <div>
+            let soma = 0;
+
+            elementos.forEach(function (elemento) {
+                var valor = parseFloat(elemento.getAttribute('data-valor'));
+
+                if (!isNaN(valor)) {
+                    soma += valor;
+                }
+            });
+
+            var somaFormatada = formatarNumero(soma); // Formata a soma com separador de milhares
+            var somaComSimbolo = adicionarSimboloReais(somaFormatada); // Adiciona o símbolo "R$" ao valor
+
+            // atribui o resultado ao input
+            document.getElementById('resultadoSoma').value = somaComSimbolo;
+
+            // Realiza a subtração e atualiza o campo de resultado da subtração
+            //salaraio como 2181, mudar
+            var subtracao = 2181 - soma;
+            var subtracaoFormatada = formatarNumero(subtracao);
+            var subtracaoComSimbolo = adicionarSimboloReais(subtracaoFormatada); // Adiciona o símbolo "R$" ao valor
+            var campoSubtracao = document.getElementById('resultadoSubtracao');
+            document.getElementById('resultadoSubtracao').value = subtracaoComSimbolo;
+            campoSubtracao.value = subtracaoComSimbolo;
+
+            campoSubtracao.classList.remove('saldo-negativo'); // Remove a classe antes de verificar novamente
+
+            // se o valor do restante for negaotivo o input fica vermelho
+             if (subtracao < 0) {
+              campoSubtracao.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+            } else {
+              campoSubtracao.style.backgroundColor = '';
+            }
+        }
+
+        // Chama a função calcularSoma() quando o DOM estiver completamente carregado
+        document.addEventListener('DOMContentLoaded', function () {
+            calcularSoma();
+
+            // Obtém o mês atual e exibe na tela
+            var meses = [
+          'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        var mesAtual = new Date().getMonth();
+        document.getElementById('mesAtual').textContent = meses[mesAtual];
+
+        });
+
+        //msg de confirmacao de exclusao
+        function confirmarExclusao() {
+            if (confirm('Tem certeza de que deseja excluir todos os produtos?')) {
+                excluirTodosProdutos();
+            }
+        }
+
+        //btn excluir tudo
+    function excluirTodosProdutos() {
+        // Fazer uma requisição POST para a URL da action que exclui os produtos
+        fetch('@Url.Action("ExcluirTodosProdutos", "Produto")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({}) // Se desejar enviar algum dado no corpo da requisição, coloque aqui.
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Se a resposta da requisição estiver ok, mostrar uma mensagem ou redirecionar para outra página.
+                    alert('Produtos excluidos, atualize a pagina.');
+                    // window.location.href = '@Url.Action("Index", "Produto")'; // Redirecionar para a página inicial.
+                } else {
+                    // Se ocorrer algum erro, mostrar uma mensagem ou lidar com a situação conforme necessário.
+                    alert('Erro ao excluir produtos.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+                alert('Ocorreu um erro na requisição.');
+            });
+    }
+            //funcao para filtar produtos
+            function filtrarProdutos() {
+                var input, filtro, tabela, tr, td, i, txtValue, nenhumDadoEncontrado;
+                input = document.getElementById("campoPesquisa");
+                filtro = input.value.toUpperCase();
+                tabela = document.getElementById("dadosTable");
+                tr = tabela.getElementsByTagName("tr");
+                nenhumDadoEncontrado = document.getElementById("nenhumDadoEncontrado");
+
+                var resultadoEncontrado = false; // Variável para verificar se há resultados após o filtro
+
+                for (i = 0; i < tr.length; i++) {
+                    td = tr[i].getElementsByTagName("td")[0];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filtro) > -1) {
+                            tr[i].style.display = "";
+                            resultadoEncontrado = true; // Definimos como true se pelo menos um resultado for visível
+                        } else {
+                            tr[i].style.display = "none";
+                        }
+                    }
+                }
+
+                // Mostra ou oculta a mensagem "Nenhum dado encontrado" com base na variável resultadoEncontrado
+                nenhumDadoEncontrado.style.display = resultadoEncontrado ? "none" : "block";
+            }
+
+            document.getElementById("campoPesquisa").addEventListener("keyup", filtrarProdutos);
+
+
+    </script>
+
+   
+        <style>
+            #exall{
+                float: right;
+            }
+
+            .form-group {
+                display: flex;
+                align-items: center;
+            }
+
+            #lbsoma{
+                padding-right:5px;
+            }
+
+            .mensagem-nenhum-dado-encontrado {
+                color: red;
+            }
+
+            #lbpesquisar{
+                padding-right:5px;
+            }
+
+        </style>
+    

@@ -1,0 +1,111 @@
+﻿@model IEnumerable<ControleDeContas.Models.Categoria>
+
+@{
+    ViewData["Title"] = "Categorias";
+}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+
+
+<div id="mensagem-toastr" style="display: none; position: fixed; top: 20px; right: 20px; background-color: #4CAF50; color: white; padding: 15px; border-radius: 5px; z-index: 9999;">
+    <span id="mensagem-texto"></span>
+    <div id="progresso-toastr" style="height: 5px; background-color: #2E8B57; width: 100%;"></div>
+</div>
+
+
+@* BOTAO ADICIONAR NOVA CATEGORIA *@
+<p>
+    <a class="btn  btn-outline-success" type="button" asp-action="Create"> <i class='far fa-edit'></i> New</a>
+</p>
+
+
+<table class="table table-dark table-hover">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Nome)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nome)
+            </td>
+            <td>
+                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"> <ion-icon name="trash-outline"></ion-icon> <i class='fas fa-trash'></i></a>
+
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<!-- Adicione o jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Adicione o Toastr.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- Adicione o seu script customizado para exibir o Toastr -->
+<script src="~/Scripts/seu-script-toastr.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Verifica se há uma mensagem TempData
+        var mensagem = '@TempData["Mensagem"]';
+
+        // Se houver uma mensagem, exibe usando Toastr
+        if (mensagem !== '') {
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            // Exibe o Toastr com a mensagem do TempData
+            toastr["success"](mensagem);
+        }
+    });
+
+    $(document).ready(function () {
+        // Verifica se há uma mensagem TempData
+        var mensagem = '@TempData["Alerta"]';
+
+        // Se houver uma mensagem, exibe usando Toastr
+        if (mensagem !== '') {
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            // Exibe o Toastr com a mensagem do TempData
+            toastr["error"](mensagem);
+        }
+    });
+
+</script>

@@ -1,0 +1,179 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+@* PEGA MES ATUAL *@
+<h3 id="mesAtual" style="text-align: center;"></h3>
+
+<br>
+
+@* CARD DE CONTAGEM DE PRODUTOS *@
+<div class="container">
+    <div class="row justify-content-center">
+        <!-- Centraliza na linha -->
+        <!-- Seu card de produtos -->
+        <div class="small-box bg-dark col-md-3" id="productBox">
+            <div class="inner">
+                <h3><span id="totalProdutos"></span></h3>
+                <h4>Produtos</h4>
+            </div>
+            <div class="icon">
+                <i class="fas fa-shopping-cart" style="color:grey"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@* INPUT DE VALORES *@
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Formulário para mostrar a soma dos valores dos produtos -->
+            <form>
+                <div class="form-group d-flex justify-content-center">
+                    <!-- Input para mostrar a soma dos valores dos produtos -->
+                    <div class="mr-3">
+                        <label for="somaValores" class="mr-2">Soma:</label>
+                        <input type="text" id="somaValores" class="form-control" value="@ViewBag.SomaValoresProdutos" style="width: 80%;" disabled>
+                    </div>
+                    <!-- Input para mostrar a diferença entre 3100 e a soma dos valores dos produtos -->
+                    <div>
+                        <label for="diferencaValores" class="mr-2">Restante:</label>
+                        <input type="text" id="diferencaValores" class="form-control" value="@ViewBag.DiferencaValores" style="width: 80%;" disabled>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<canvas id="graficoCategorias" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+
+<br>
+
+<div class="card">
+    <div class="card-header border-transparent">
+        <h3 class="card-title">Últimas Compras</h3>
+
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus"></i>
+            </button>
+            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table m-0">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Valor</th>
+                        <th>Categoria</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var compra in ViewBag.UltimasCompras)
+                    {
+                        <tr>
+                            <td>@compra.Nome</td>
+                            <td>@compra.Valor</td>
+                            <td>@compra.Categoria.Nome</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- /.table-responsive -->
+    </div>
+</div>
+
+
+<script>
+    // Função para obter o mês atual
+    function obterMesAtual() {
+        // Array com os nomes dos meses
+        var meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+        // Obter o objeto Date atual
+        var dataAtual = new Date();
+
+        // Obter o mês atual (0-11)
+        var mesAtual = dataAtual.getMonth();
+
+        // Obter o nome do mês atual do array de meses
+        var nomeMesAtual = meses[mesAtual];
+
+        // Retornar o nome do mês atual
+        return nomeMesAtual;
+    }
+
+    // Chamada da função para exibir o mês atual na div
+    document.getElementById("mesAtual").innerHTML = obterMesAtual();
+
+
+    $(document).ready(function () {
+        function atualizarCardProdutos() {
+            $.ajax({
+                url: '/Produto/ContarProdutos',
+                type: 'GET',
+                success: function (data) {
+                    $('#totalProdutos').text(data); // Atualiza o total de produtos
+                },
+                error: function () {
+                    $('#totalProdutos').text('Erro ao carregar o total de produtos.');
+                }
+            });
+        }
+
+        // Chamada inicial para carregar o número de produtos
+        atualizarCardProdutos();
+    });
+
+
+    $(document).ready(function () {
+        var categorias = [];
+        var quantidades = [];
+
+        // Extrai os dados passados pela ViewBag
+    @foreach (var item in ViewBag.CategoriasComQuantidade)
+    {
+        <text>
+                categorias.push('@item.Nome');
+            quantidades.push('@item.Quantidade');
+        </text>
+    }
+
+            // Cria o gráfico donut usando o Chart.js
+            var ctx = document.getElementById('graficoCategorias').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: categorias,
+                datasets: [{
+                    data: quantidades,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    });
+
+</script>

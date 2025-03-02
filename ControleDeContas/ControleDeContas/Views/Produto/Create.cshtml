@@ -1,0 +1,68 @@
+﻿@model ControleDeContas.Models.Produto
+
+@{
+    ViewData["Title"] = "Criar";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Nome" class="control-label"></label>
+                <input required asp-for="Nome" class="form-control" />
+                <span asp-validation-for="Nome" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Valor" class="control-label"></label>
+                <input required asp-for="Valor" class="form-control" />
+                <span asp-validation-for="Valor" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Categoria" class="control-label"></label>
+                <select class="form-control form-select" aria-label="Selecione uma Categoria" asp-for="Categoria" asp-items="ViewBag.Categorias">
+                    <option value="">Selecione uma Categoria...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Data" class="control-label"></label>
+                <input id="dataBrasil" data-mask="00/00/0000" maxlength="10" required asp-for="Data" class="form-control" />
+                <span asp-validation-for="Data" class="text-danger"></span>
+            </div>
+
+            <br />
+
+            <div class="form-group">
+                <input type="submit" value="Salvar" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<br />
+
+<div>
+    <a class="btn btn-secondary" asp-action="Index"> <i class='fas fa-backspace'></i> Voltar</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        // Função para obter a data atual no fuso horário do Brasil e inseri-la no input
+        function inserirDataBrasilNoInput() {
+            // Obtém a data atual no fuso horário do Brasil (GMT-3)
+            const dataAtual = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+            // Insere a data no campo de entrada
+            document.getElementById('dataBrasil').value = dataAtual;
+        }
+
+        // Chama a função para inserir a data do Brasil quando a página carregar
+        window.onload = inserirDataBrasilNoInput;
+
+
+    </script>
+}

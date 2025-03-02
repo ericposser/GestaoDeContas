@@ -1,0 +1,331 @@
+﻿@model IEnumerable<ControleDeContas.Models.Produto>
+
+@{
+    ViewData["Title"] = "Produtos";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+
+
+<div id="mensagem-toastr" style="display: none; position: fixed; top: 20px; right: 20px; background-color: #4CAF50; color: white; padding: 15px; border-radius: 5px; z-index: 9999;">
+    <span id="mensagem-texto"></span>
+    <div id="progresso-toastr" style="height: 5px; background-color: #2E8B57; width: 100%;"></div>
+</div>
+
+
+@* BOTAO EXCLUIR TODOS PRODUTOS *@
+<button id="exall" type="button" class="btn  btn-outline-danger" onclick="confirmarExclusao()"> <i class='fas fa-trash'></i> All</button>
+
+
+@* BOTAO ADICIONAR NOVO PRODUTO *@
+<p>
+    <a class="btn  btn-outline-success" type="button" asp-action="Create"> <i class='far fa-edit'></i> New</a>
+</p>
+
+
+@* CAMPO DE PESQUISA/FILTRAR PRODUTOS *@
+<div class="input-group input-group-sm mb-3 w-25">
+    <strong><label id="lbpesquisar"><i class="fa fa-search"></i> Pesquisar: </label></strong>
+    <input class="form-control w-25" type="text" id="campoPesquisa" oninput="filtrarTabela()">
+</div>
+
+
+@* TABELA *@
+<table id="dadosTable" class="table table-dark table-hover">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Nome)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Valor)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Categoria)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Data)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Pago)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nome)
+            </td>
+
+            <td data-valor="@item.Valor">
+                @Html.DisplayFor(modelItem => item.Valor)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.Categoria.Nome)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.Data)
+            </td>
+
+                <td data-nome="Pago" data-pago="@item.Pago">
+                    @if (item.Pago == true)
+                    {
+                        @Html.DisplayFor(modelItem => item.Pago)
+                    }
+                </td>
+
+            <td>
+
+                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"> <ion-icon name="trash-outline"></ion-icon> <i class='fas fa-trash'></i></a>
+
+                    <a class="btn  btn-outline-primary" asp-action="Edit" asp-route-id="@item.Id"> <i class="fa fa-check"></i> </a>
+
+                   
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<!-- Adicione o jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Adicione o Toastr.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- Adicione o seu script customizado para exibir o Toastr -->
+<script src="~/Scripts/seu-script-toastr.js"></script>
+
+    <script>
+
+        //funcao para adicionar , nos milhares
+        function formatarNumero(numero) {
+            return numero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        //funcao para adicionar R$ nos input
+        function adicionarSimboloReais(valor) {
+            return "R$ " + valor;
+        }
+
+
+        //msg de confirmacao de exclusao
+        function confirmarExclusao() {
+            if (confirm('Tem certeza de que deseja excluir todos os produtos?')) {
+                excluirTodosProdutos();
+            }
+        }
+
+
+
+        //FUNCAO PARA EXCLUIR TODOS PRODUTOS
+         function excluirTodosProdutos() {
+        // Fazer uma requisição POST para a URL da action que exclui os produtos
+        fetch('@Url.Action("ExcluirTodosProdutos", "Produto")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({}) // Se desejar enviar algum dado no corpo da requisição, coloque aqui.
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Se a resposta da requisição estiver ok, mostrar uma mensagem ou redirecionar para outra página.
+                    alert('Produtos excluidos, atualize a pagina.');
+                    // window.location.href = '@Url.Action("Index", "Produto")'; // Redirecionar para a página inicial.
+                } else {
+                    // Se ocorrer algum erro, mostrar uma mensagem ou lidar com a situação conforme necessário.
+                    alert('Erro ao excluir produtos.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+                alert('Ocorreu um erro na requisição.');
+            });
+    }
+
+
+
+            //FUNCAO PARA FILTRAR PRODUTOS
+            function filtrarTabela() {
+                var input, filtro, tabela, tr, td, i, valorCelula;
+                input = document.getElementById("campoPesquisa");
+                filtro = input.value.toUpperCase();
+                tabela = document.getElementById("dadosTable");
+                tr = tabela.getElementsByTagName("tr");
+
+                for (i = 0; i < tr.length; i++) {
+                    td = tr[i].getElementsByTagName("td")[0]; // A primeira coluna contém o nome
+                    if (td) {
+                        valorCelula = td.textContent || td.innerText;
+                        if (valorCelula.toUpperCase().indexOf(filtro) > -1) {
+                            tr[i].style.display = ""; // Mostrar a linha
+                        } else {
+                            tr[i].style.display = "none"; // Ocultar a linha
+                        }
+                    }
+                }
+            }
+
+
+
+            //MSG SOME DEPOIS DE 1 SEGUNDO DA TELA
+            setTimeout(function () {
+                $("#successMessage").fadeOut("slow");
+            }, 2000); // 5000 milissegundos = 5 segundos
+
+
+
+            function controlarExibicaoPago() {
+                // Seleciona todas as células da coluna "Pago"
+                var cellsPago = document.querySelectorAll('td[data-nome="Pago"]');
+
+                // Itera sobre as células da coluna "Pago"
+                cellsPago.forEach(function (cell) {
+                    // Obtém o valor do atributo "data-pago" da célula
+                    var valorPago = parseInt(cell.dataset.pago);
+
+                    // Verifica se o valor de "Pago" é igual a 0
+                    if (valorPago === 0) {
+                        // Oculta a célula
+                        cell.style.display = 'none';
+                    }
+                });
+            }
+
+            // Chamada da função ao carregar a página
+            window.onload = function () {
+                controlarExibicaoPago();
+            };
+
+    $(document).ready(function () {
+        // Verifica se há uma mensagem TempData
+        var mensagem = '@TempData["Mensagem"]';
+
+        // Se houver uma mensagem, exibe usando Toastr
+        if (mensagem !== '') {
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            // Exibe o Toastr com a mensagem do TempData
+            toastr["success"](mensagem);
+        }
+    });
+
+    $(document).ready(function () {
+        // Verifica se há uma mensagem TempData
+        var mensagem = '@TempData["MensagemW"]';
+
+        // Se houver uma mensagem, exibe usando Toastr
+        if (mensagem !== '') {
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            // Exibe o Toastr com a mensagem do TempData
+            toastr["warning"](mensagem);
+        }
+    });
+
+
+    $(document).ready(function () {
+        // Verifica se há uma mensagem TempData
+        var mensagem = '@TempData["Alerta"]';
+
+        // Se houver uma mensagem, exibe usando Toastr
+        if (mensagem !== '') {
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+
+            // Exibe o Toastr com a mensagem do TempData
+            toastr["error"](mensagem);
+        }
+    });
+
+    </script>
+
+   
+
+
+        <style>
+            #exall{
+                float: right;
+            }
+
+            .form-group {
+                display: flex;
+                align-items: center;
+            }
+
+            #lbsoma{
+                padding-right:5px;
+            }
+
+            .mensagem-nenhum-dado-encontrado {
+                color: red;
+            }
+
+            #lbpesquisar{
+                padding-right:5px;
+            }
+
+            .progress-bar {
+                height: 5px;
+                background-color: green; /* Cor da barra de progresso */
+                width: 100%; /* Inicialmente, a barra de progresso ocupa toda a largura */
+            }
+
+
+            /* #productBox {
+                width: 200px; /* Defina a largura desejada */
+                height: 100px; /* Defina a altura desejada */
+            } */
+
+        </style>
+    

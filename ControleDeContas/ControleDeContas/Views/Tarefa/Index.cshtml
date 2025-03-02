@@ -1,0 +1,159 @@
+﻿@model IEnumerable<ControleDeContas.Models.Tarefa>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+@* CARD PARA CONTAR TAREFAS *@
+<div class="small-box bg-dark col-md-3" id="taskBox">
+    <div class="inner">
+        <h3><span id="totalTarefas"></span></h3>
+        <h4>Tarefas</h4>
+    </div>
+    <div class="icon">
+        <i class="fa fa-tasks" style="color:grey"></i>
+    </div>
+</div>
+
+
+@* MOSTRAR TAREFAS ATRASADAS *@
+<div id="tarefasAtrasadas" class="form-control w-25" style="display: none; background-color: rgba(255, 0, 0, 0.2); font-size: 18px; color: white;"></div>
+
+<br></br>
+
+
+@* BOTAO ADICIONAR TAREFA *@
+<p>
+    <a class="btn btn-success" type="button" asp-action="Create"> <i class='far fa-edit'></i> Nova tarefa</a>
+</p>
+
+
+@* MOSTRAR NA TELA O DIA ATUAL *@
+<p id="dataAtual">Dia:</p>
+
+
+@* MENSAGEM TEMPDATA *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div id="successMessage" class="alert @TempData["MessageType"]">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@* TABELA *@
+<table class="table table-dark table-hover">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Nome)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Data)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody >
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Data)
+            </td>
+            <td>
+                    <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id"> <ion-icon name="trash-outline"></ion-icon> <i class='fas fa-trash'></i> Excluir</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<br></br>
+
+<!-- Adicione o jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Adicione o Toastr.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- Adicione o seu script customizado para exibir o Toastr -->
+<script src="~/Scripts/seu-script-toastr.js"></script>
+
+<script>
+    //FUNCAO PARA MONSTRAR E CONTAR TAREFAS ATRADAS
+ document.addEventListener('DOMContentLoaded', function () {
+        const table = document.querySelector('table');
+        const divElement = document.querySelector('#tarefasAtrasadas');
+
+        function contarTarefasAtrasadas() {
+            const hoje = new Date();
+            const linhas = table.querySelectorAll('tbody tr');
+            let tarefasAtrasadas = 0;
+
+            linhas.forEach(function (linha) {
+                const dataCell = linha.querySelector('td:nth-child(2)');
+                const dataString = dataCell.textContent;
+                const [dia, mes, ano] = dataString.split('/'); // Supondo que a data está no formato "dd/MM/yyyy"
+                const dataTarefa = new Date(ano, mes - 1, dia); // O mês é base 0, subtrai 1
+
+                if (dataTarefa < hoje) {
+                    tarefasAtrasadas++;
+                }
+            });
+
+            if (tarefasAtrasadas > 0) {
+                divElement.style.display = 'block';
+                divElement.textContent = `Tarefas Atrasadas: ${tarefasAtrasadas}`;
+            } else {
+                divElement.style.display = 'none';
+            }
+        }
+
+        contarTarefasAtrasadas();
+    });
+
+
+    //FUNCAO PARA MOSTRAR DATA ATUAL
+    function mostrarDataAtual() {
+        const dataAtual = new Date();
+        const dia = dataAtual.getDate();
+        const mes = dataAtual.getMonth() + 1; // Os meses são indexados de 0 a 11, então somamos 1.
+
+        // Crie uma string formatada com o dia e o mês
+        const dataFormatada = `${dia}/${mes}`;
+
+        // Exiba a data na tela
+        document.getElementById("dataAtual").textContent = `Dia: ${dataFormatada}`;
+    }
+
+    // Chame a função para exibir a data
+    mostrarDataAtual();
+
+
+    //FUNCAO PARA CONTAR A QUANTIDADE DE TAREFAS
+    function contarTarefas() {
+        var tabela = document.querySelector(".table"); // Seleciona a tabela
+        var linhas = tabela.querySelectorAll("tbody tr"); // Seleciona todas as linhas da tabela
+        var numeroTarefas = linhas.length; // Conta o número de linhas (tarefas)
+
+        var totalTarefas = document.getElementById("totalTarefas"); // Seleciona o elemento onde você deseja exibir o número de tarefas
+        totalTarefas.textContent = numeroTarefas; // Atualiza o conteúdo com o número de tarefas
+    }
+
+    // Chame a função para contar as tarefas quando a página for carregada
+    contarTarefas();
+
+
+
+    //MSG SOME DEPOIS DE 1 SEGUNDO DA TELA
+    setTimeout(function () {
+        $("#successMessage").fadeOut("slow");
+    }, 2000); // 5000 milissegundos = 5 segundos
+
+    
+</script>
+
+
+
+
